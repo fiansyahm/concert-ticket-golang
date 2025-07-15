@@ -10,6 +10,7 @@ function BookingPage() {
   const [listTickets, setListTickets] = useState([]);
   const [quantity, setQuantity] = useState(1);
   const [userBookings, setUserBookings] = useState([]);
+  const [payments, setPayments] = useState([]); // New state for payments
   const [loginedUser, setLoginedUser] = useState(null); // New state for loginedUser
 
   const navigate = useNavigate();
@@ -58,6 +59,21 @@ function BookingPage() {
       }
     };
     fetchAllTickets();
+  }, []);
+
+  // ✅ Fetch all payments
+  useEffect(() => {
+    const fetchPayments = async () => {
+      try {
+        const response = await fetch(`http://localhost:8083/api/payments`);
+        const data = await response.json();
+        setPayments(data);
+        console.log('Fetched payments:', data);
+      } catch (error) {
+        console.error('Error fetching payments:', error);
+      }
+    };
+    fetchPayments();
   }, []);
 
   // ✅ Fetch tickets based on selected concert
@@ -152,6 +168,51 @@ function BookingPage() {
     }
   };
 
+  // ✅ Payment function
+  const handlePayment = async (booking) => {
+    const ticket = listTickets.find(t => t.id === booking.ticket_id);
+    if (!ticket) {
+      alert('Ticket information not found for this booking.');
+      return;
+    }
+
+    const amount = ticket.price * booking.quantity;
+
+    try {
+      const response = await fetch('http://localhost:8083/api/payments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          booking_id: booking.id,
+          amount: amount,
+        }),
+      });
+
+      if (response.ok) {
+        alert('Payment successful!');
+        // Re-fetch bookings and payments to update UI
+        const user_id = loginedUser?.id;
+        if (user_id) {
+          const updatedBookingsRes = await fetch(`http://localhost:8082/api/users/${user_id}/bookings`);
+          const updatedBookingsData = await updatedBookingsRes.json();
+          setUserBookings(updatedBookingsData);
+        }
+        const updatedPaymentsRes = await fetch(`http://localhost:8083/api/payments`);
+        const updatedPaymentsData = await updatedPaymentsRes.json();
+        setPayments(updatedPaymentsData);
+
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || 'Payment failed');
+      }
+    } catch (error) {
+      console.error('Error during payment:', error);
+      alert('An error occurred during payment. Please try again.');
+    }
+  };
+
   return (
     <div className="container mt-5">
       <h2 className="mb-4">Book Tickets</h2>
@@ -235,6 +296,18 @@ function BookingPage() {
                   <div><strong>Quantity:</strong> {booking.quantity}</div>
                   <div><strong>Total:</strong> {ticket ? ticket.price * booking.quantity : 'N/A'}</div>
                   <div><strong>Status:</strong> {booking.status}</div>
+                  <div>
+                    {payments.some(p => p.booking_id === booking.id && p.payment_status === "success") ? (
+                      <span style={{ color: 'green' }}>Paid</span>
+                    ) : (
+                      <button
+                        className="btn btn-sm btn-success"
+                        onClick={() => handlePayment(booking)}
+                      >
+                        Pay Now
+                      </button>
+                    )}
+                  </div>
                 </li>
               );
             })}

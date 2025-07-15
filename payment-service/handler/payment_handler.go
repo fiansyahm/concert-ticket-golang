@@ -17,18 +17,31 @@ func ProcessPayment(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		// In a real application, you would integrate with a payment gateway here.
-		// For simplicity, we'll just assume the payment is successful.
-		payment.PaymentStatus = "success"
+		// Check if a payment for this booking_id already exists
+		var existingPayment model.Payment
+		result := db.Where("booking_id = ?", payment.BookingID).First(&existingPayment)
 
-		if err := db.Create(&payment).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process payment"})
+		if result.Error == nil {
+			// Payment exists, update its status
+			existingPayment.PaymentStatus = "success"
+			if err := db.Save(&existingPayment).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update payment status"})
+				return
+			}
+			c.JSON(http.StatusOK, existingPayment)
+		} else if result.Error == gorm.ErrRecordNotFound {
+			// No existing payment, create a new one
+			payment.PaymentStatus = "success"
+			if err := db.Create(&payment).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process payment"})
+				return
+			}
+			c.JSON(http.StatusCreated, payment)
+		} else {
+			// Other database error
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error checking payment status"})
 			return
 		}
-
-		// Here you would typically notify the booking service that the payment was successful.
-
-		c.JSON(http.StatusCreated, payment)
 	}
 }
 

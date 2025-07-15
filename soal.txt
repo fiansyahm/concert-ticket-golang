@@ -9,19 +9,19 @@ Frontend dibangun dengan React.js dan berkomunikasi ke backend via REST API.
 Spesifikasi Teknis
 
 Backend (Golang)
-- Gunakan bahasa Go (Golang)
-- Framework: Gin atau Fiber
-- Service terpisah (bisa dijalankan mandiri sebagai container)
+- Gunakan bahasa Go (Golang) v
+- Framework: Gin atau Fiber v
+- Service terpisah (bisa dijalankan mandiri sebagai container) v
 - MySQL sebagai database
 - Redis optional untuk caching
 - Logging, error handling, dan dokumentasi API (Swagger)
 
 Frontend (React.js)
-- React Hooks + Functional Component
-- Optional: TypeScript
-- Halaman login, dashboard, pemesanan tiket
-- React Router, Lazy Loading, Code Splitting
-- Styling bebas
+- React Hooks + Functional Component v
+- Optional: TypeScript v
+- Halaman login, dashboard, pemesanan tiket v
+- React Router, Lazy Loading, Code Splitting v
+- Styling bebas v
 - State management (Context API / Redux Toolkit / React Query)
 - Validasi form dan error UI
 
