@@ -1,0 +1,14 @@
+### Process a new payment
+POST http://localhost:8083/api/payments
+Content-Type: application/json
+
+{
+  "booking_id": 1,
+  "amount": 150.00
+}
+
+### Get payment status by booking ID
+GET http://localhost:8083/api/payments/1
+
+### Get all payments
+GET http://localhost:8083/api/payments

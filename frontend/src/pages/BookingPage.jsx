@@ -223,12 +223,23 @@ function BookingPage() {
         <h2>Your Bookings</h2>
         {userBookings.length > 0 ? (
           <ul className="list-group">
-            {userBookings.map((booking) => (
-              <li key={booking.id} className="list-group-item">
-                Booking ID: {booking.id} - Concert: {concerts.find(c => c.id === (listTickets.find(t => t.id === booking.ticket_id)?.concert_id))?.name || 'N/A'} - Ticket: {listTickets.find(t => t.id === booking.ticket_id)?.type || 'N/A'} - Quantity: {booking.quantity} - Total: {(listTickets.find(t => t.id === booking.ticket_id)?.price)*booking.quantity}
-              </li>
-            ))}
+            {userBookings.map((booking) => {
+              const ticket = listTickets.find(t => t.id === booking.ticket_id);
+              const concert = concerts.find(c => c.id === ticket?.concert_id);
+
+              return (
+                <li key={booking.id} className="list-group-item">
+                  <div><strong>Booking ID:</strong> {booking.id}</div>
+                  <div><strong>Concert:</strong> {concert?.name || 'N/A'}</div>
+                  <div><strong>Level:</strong> {ticket?.type || 'N/A'}</div>
+                  <div><strong>Quantity:</strong> {booking.quantity}</div>
+                  <div><strong>Total:</strong> {ticket ? ticket.price * booking.quantity : 'N/A'}</div>
+                  <div><strong>Status:</strong> {booking.status}</div>
+                </li>
+              );
+            })}
           </ul>
+
         ) : (
           <p>No bookings found for this user.</p>
         )}

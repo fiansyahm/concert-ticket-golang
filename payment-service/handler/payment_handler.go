@@ -19,7 +19,7 @@ func ProcessPayment(db *gorm.DB) gin.HandlerFunc {
 
 		// In a real application, you would integrate with a payment gateway here.
 		// For simplicity, we'll just assume the payment is successful.
-		payment.Status = "success"
+		payment.PaymentStatus = "success"
 
 		if err := db.Create(&payment).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process payment"})
@@ -44,5 +44,17 @@ func GetPaymentStatus(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, payment)
+	}
+}
+
+// GetAllPayments handles fetching all payments
+func GetAllPayments(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var payments []model.Payment
+		if err := db.Find(&payments).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch payments"})
+			return
+		}
+		c.JSON(http.StatusOK, payments)
 	}
 }

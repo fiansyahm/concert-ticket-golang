@@ -40,7 +40,7 @@ func main() {
 	// Start server
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8082"
+		port = "8083"
 	}
 	log.Printf("Server listening on port %s", port)
 	router.Run(":" + port)

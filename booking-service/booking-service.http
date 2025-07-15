@@ -3,11 +3,11 @@ POST http://localhost:8082/api/concerts
 Content-Type: application/json
 
 {
-  "name":"Rock Fest 2025",
-  "title": "Concert B",
-  "artist": "Artist B",
+  "name":"POP Fest 2025",
+  "title": "Concert POP",
+  "artist": "Artist POP",
   "date": "2025-12-25T20:00:00Z",
-  "venue": "Venue B",
+  "venue": "Venue A",
   "total_tickets":1000
 }
 
@@ -22,8 +22,8 @@ POST http://localhost:8082/api/tickets
 Content-Type: application/json
 
 {
-  "concert_id": 1,
-  "type": "PREMIUM",
+  "concert_id": 2,
+  "type": "W PREMIUM",
   "price": 150.00,
   "quantity": 100
 }

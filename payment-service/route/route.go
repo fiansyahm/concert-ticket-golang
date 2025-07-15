@@ -12,5 +12,6 @@ func SetupRouter(router *gin.Engine, db *gorm.DB) {
 	{
 		api.POST("/payments", handler.ProcessPayment(db))
 		api.GET("/payments/:bookingId", handler.GetPaymentStatus(db))
+		api.GET("/payments", handler.GetAllPayments(db))
 	}
 }
