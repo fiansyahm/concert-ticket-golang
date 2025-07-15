@@ -1,0 +1,73 @@
+Project: Concert Ticket Booking System
+Kandidat diminta membuat sistem pemesanan tiket konser berbasis microservices dengan 3 komponen layanan utama:
+
+1. user-service
+2. booking-service
+3. payment-service
+
+Frontend dibangun dengan React.js dan berkomunikasi ke backend via REST API.
+Spesifikasi Teknis
+
+Backend (Golang)
+- Gunakan bahasa Go (Golang)
+- Framework: Gin atau Fiber
+- Service terpisah (bisa dijalankan mandiri sebagai container)
+- MySQL sebagai database
+- Redis optional untuk caching
+- Logging, error handling, dan dokumentasi API (Swagger)
+
+Frontend (React.js)
+- React Hooks + Functional Component
+- Optional: TypeScript
+- Halaman login, dashboard, pemesanan tiket
+- React Router, Lazy Loading, Code Splitting
+- Styling bebas
+- State management (Context API / Redux Toolkit / React Query)
+- Validasi form dan error UI
+
+
+
+📈 Soal Tambahan
+
+1. SQL & Index Optimization
+Query SQL dan penjelasan optimasi index.
+-	Membuat struktur database relasional berdasarkan project Concert Ticket Booking System diatas.
+-	Menjelaskan strategi optimasi query dengan cara menambahkan index yang tepat untuk meningkatkan performa pada dataset yang sangat besar.
+2. High-Load Optimization
+Cara mengurangi beban ke DB saat endpoint menerima 100.000 hit/detik.
+
+3. API Security
+Sebutkan minimal 5 langkah mengamankan endpoint POST /api/users.
+
+4. CI/CD Workflow
+Jelaskan secara lengkap dan terstruktur alur Continuous Integration dan Continuous Deployment (CI/CD) yang terjadi mulai dari developer melakukan Git commit hingga aplikasi ter-deploy ke lingkungan production.
+
+5. Code Review & Debugging (Golang)
+Berikut potongan kode handler API menggunakan Gin:
+
+r.GET("/user/:id", func(c *gin.Context) {
+    id := c.Param("id")
+    user, err := db.FindUserByID(id)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+        return
+    }
+    if user == nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+        return
+    }
+    c.JSON(http.StatusOK, user)
+})
+
+Instruksi:
+- Identifikasi minimal 3 masalah/bug dari kode awal.
+- Jelaskan kesalahan dan perbaikannya.
+- Tunjukkan versi kode yang sudah diperbaiki.
+Deliverables
+- Link repository GitHub (frontend & backend)
+- README penggunaan dan cara menjalankan (dev & optional: Docker)
+- (Optional) Postman collection atau Swagger documentation
+
+
+
+-BATAS WAKTU PENGERJAAN MAKSIMAL 2 x 24 JAM SEJAK PESAN DIKIRIMKAN-

@@ -1,0 +1,45 @@
+### Create Concert
+POST http://localhost:8082/api/concerts
+Content-Type: application/json
+
+{
+  "name":"Rock Fest 2025",
+  "title": "Concert B",
+  "artist": "Artist B",
+  "date": "2025-12-25T20:00:00Z",
+  "venue": "Venue B",
+  "total_tickets":1000
+}
+
+### Get All Concerts
+GET http://localhost:8082/api/concerts
+
+### Get Concert by ID
+GET http://localhost:8082/api/concerts/1
+
+### Create Ticket
+POST http://localhost:8082/api/tickets
+Content-Type: application/json
+
+{
+  "concert_id": 1,
+  "ticket_type": "VIP",
+  "price": 150.00,
+  "quantity": 100
+}
+
+### Get Tickets by Concert ID
+GET http://localhost:8082/api/tickets/concerts/1
+
+### Create Booking
+POST http://localhost:8082/api/bookings
+Content-Type: application/json
+
+{
+  "user_id": 1,
+  "ticket_id": 1,
+  "quantity": 2
+}
+
+### Get User Bookings
+GET http://localhost:8082/api/users/1/bookings

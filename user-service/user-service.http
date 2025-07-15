@@ -1,0 +1,37 @@
+### Register a new user
+POST http://localhost:8081/api/register
+Content-Type: application/json
+
+{
+  "username": "testuser1",
+  "password": "password1",
+  "email": "testuser1@example.com"
+}
+
+### Login as the new user
+POST http://localhost:8081/api/login
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com",
+  "password": "password"
+}
+
+### Get user profile
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3R1c2VyQGV4YW1wbGUuY29tIiwiZXhwIjoxNzgyNzQ1OTk5fQ.DR3bC5lTDSiS5nF01PEs2_D4e_3f3E-8Z_3Y-8Z_3Y-8
+GET http://localhost:8081/api/users/3
+Authorization: Bearer {{token}}
+
+### Update user profile
+PUT http://localhost:8081/api/users/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "username": "updateduser",
+  "email": "updateduser@example.com"
+}
+
+### Delete user
+DELETE http://localhost:8081/api/users/1
+Authorization: Bearer {{token}}
