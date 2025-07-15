@@ -7,6 +7,7 @@ function BookingPage() {
   const [selectedConcert, setSelectedConcert] = useState(null);
   const [tickets, setTickets] = useState([]);
   const [selectedTicket, setSelectedTicket] = useState(null);
+  const [listTickets, setListTickets] = useState([]);
   const [quantity, setQuantity] = useState(1);
   const [userBookings, setUserBookings] = useState([]);
   const [loginedUser, setLoginedUser] = useState(null); // New state for loginedUser
@@ -43,6 +44,20 @@ function BookingPage() {
       }
     };
     fetchConcerts();
+  }, []);
+
+    // ✅ Fetch all tickets for listTickets
+  useEffect(() => {
+    const fetchAllTickets = async () => {
+      try {
+        const response = await fetch(`http://localhost:8082/api/tickets`);
+        const data = await response.json();
+        setListTickets(data);
+      } catch (error) {
+        console.error('Error fetching all tickets:', error);
+      }
+    };
+    fetchAllTickets();
   }, []);
 
   // ✅ Fetch tickets based on selected concert
@@ -210,7 +225,7 @@ function BookingPage() {
           <ul className="list-group">
             {userBookings.map((booking) => (
               <li key={booking.id} className="list-group-item">
-                Booking ID: {booking.id} - Concert: {booking.concert_name} - Ticket: {booking.ticket_type} - Quantity: {booking.quantity} - Total: ${booking.total_price}
+                Booking ID: {booking.id} - Concert: {concerts.find(c => c.id === (listTickets.find(t => t.id === booking.ticket_id)?.concert_id))?.name || 'N/A'} - Ticket: {listTickets.find(t => t.id === booking.ticket_id)?.type || 'N/A'} - Quantity: {booking.quantity} - Total: {(listTickets.find(t => t.id === booking.ticket_id)?.price)*booking.quantity}
               </li>
             ))}
           </ul>

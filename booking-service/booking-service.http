@@ -23,7 +23,7 @@ Content-Type: application/json
 
 {
   "concert_id": 1,
-  "ticket_type": "VIP",
+  "type": "PREMIUM",
   "price": 150.00,
   "quantity": 100
 }
@@ -43,3 +43,6 @@ Content-Type: application/json
 
 ### Get User Bookings
 GET http://localhost:8082/api/users/1/bookings
+
+### Get All Tickets
+GET http://localhost:8082/api/tickets

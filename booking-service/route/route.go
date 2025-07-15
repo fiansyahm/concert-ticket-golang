@@ -18,6 +18,8 @@ func SetupRouter(router *gin.Engine, db *gorm.DB) {
 		// Ticket routes
 		api.POST("/tickets", handler.CreateTicket(db))
 		api.GET("/tickets/concerts/:concertId", handler.GetTicketsByConcert(db))
+		api.GET("/tickets/:id", handler.GetTicket(db))
+		api.GET("/tickets", handler.GetAllTickets(db))
 
 		// Booking routes
 		api.POST("/bookings", handler.CreateBooking(db))
