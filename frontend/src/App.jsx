@@ -11,7 +11,7 @@ function App() {
 
   useEffect(() => {
     const userString = localStorage.getItem('user');
-    if (userString !== null) {
+    if (userString && userString !== "undefined") {
       try {
         const user = JSON.parse(userString);
         setLoginedUser(user);
@@ -20,11 +20,16 @@ function App() {
         console.error("Error parsing user from localStorage:", e);
         localStorage.removeItem('user'); // Clear invalid data
       }
+    } else {
+      localStorage.removeItem('user'); // Clear "undefined" or null data
+      setLoginedUser(null);
+      setIsLoggedIn(false);
     }
   }, []);
 
   const handleLogin = (user) => {
     localStorage.setItem('user', JSON.stringify(user));
+    console.log('App loaded. loginedUser from localStorage:', user);
     setLoginedUser(user);
     setIsLoggedIn(true);
   };
@@ -37,28 +42,43 @@ function App() {
 
   return (
     <Router>
-      <nav style={{ padding: '10px', background: '#f0f0f0' }}>
-        {!isLoggedIn ? (
-          <Link to="/">Login</Link>
-        ) : (
-          <Link to="/" onClick={handleLogout}>Logout</Link>
-        )}
-        {isLoggedIn && (
-          <>
-            {' '}| <Link to="/dashboard">Dashboard</Link>
-            {' '}| <Link to="/booking">Booking</Link>
-          </>
-        )}
-        {!isLoggedIn && (
-          <>
-            {' '}| <Link to="/register">Register</Link>
-          </>
-        )}
+      <nav className="navbar navbar-expand-lg navbar-light bg-light">
+        <div className="container-fluid">
+          <Link className="navbar-brand" to="/">Concert Tickets</Link>
+          <div className="collapse navbar-collapse" id="navbarNav">
+            <ul className="navbar-nav ms-auto">
+              {!isLoggedIn ? (
+                <li className="nav-item">
+                  <Link className="nav-link" to="/">Login</Link>
+                </li>
+              ) : (
+                <li className="nav-item">
+                  <Link className="nav-link" to="/" onClick={handleLogout}>Logout</Link>
+                </li>
+              )}
+              {isLoggedIn && (
+                <>
+                  <li className="nav-item">
+                    <Link className="nav-link" to="/dashboard">Dashboard</Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link className="nav-link" to="/booking">Booking</Link>
+                  </li>
+                </>
+              )}
+              {!isLoggedIn && (
+                <li className="nav-item">
+                  <Link className="nav-link" to="/register">Register</Link>
+                </li>
+              )}
+            </ul>
+          </div>
+        </div>
       </nav>
       <Routes>
         <Route path="/" element={<LoginPage handleLogin={handleLogin} isLoggedIn={isLoggedIn} />} />
-        <Route path="/dashboard" element={<DashboardPage handleLogout={handleLogout} loginedUser={loginedUser} />} />
-        <Route path="/booking" element={<BookingPage loginedUser={loginedUser} />} />
+        <Route path="/dashboard" element={<DashboardPage handleLogout={handleLogout} />} />
+        <Route path="/booking" element={<BookingPage />} />
         <Route path="/register" element={<RegisterPage isLoggedIn={isLoggedIn} />} />
       </Routes>
     </Router>

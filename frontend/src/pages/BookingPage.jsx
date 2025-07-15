@@ -2,19 +2,33 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function BookingPage({ loginedUser, handleLogin }) {
+function BookingPage() {
   const [concerts, setConcerts] = useState([]);
   const [selectedConcert, setSelectedConcert] = useState(null);
   const [tickets, setTickets] = useState([]);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [userBookings, setUserBookings] = useState([]);
+  const [loginedUser, setLoginedUser] = useState(null); // New state for loginedUser
 
   const navigate = useNavigate();
 
-  // 🧠 Log user saat komponen di-render
+  // Load user from localStorage on component mount
   useEffect(() => {
-    console.log('BookingPage loaded. loginedUser:', loginedUser);
+    const userString = localStorage.getItem('user');
+    if (userString && userString !== "undefined") {
+      try {
+        const user = JSON.parse(userString);
+        setLoginedUser(user);
+        console.log('BookingPage loaded. loginedUser from localStorage:', user);
+      } catch (e) {
+        console.error("Error parsing user from localStorage:", e);
+        localStorage.removeItem('user'); // Clear invalid data
+      }
+    } else {
+      localStorage.removeItem('user'); // Clear "undefined" or null data
+      setLoginedUser(null);
+    }
   }, []);
 
   // ✅ Fetch all concerts
@@ -53,7 +67,7 @@ function BookingPage({ loginedUser, handleLogin }) {
       if (loginedUser && loginedUser.id) {
         console.log("Fetching bookings for user:", loginedUser.id);
         try {
-          const response = await fetch(`http://localhost:8082/api/users/1/bookings`);
+          const response = await fetch(`http://localhost:8082/api/users/${loginedUser.id}/bookings`);
           if (response.ok) {
             const data = await response.json();
             setUserBookings(data);
@@ -124,12 +138,16 @@ function BookingPage({ loginedUser, handleLogin }) {
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Book Tickets</h2>
+    <div className="container mt-5">
+      <h2 className="mb-4">Book Tickets</h2>
       <form onSubmit={handleBooking}>
-        <div>
-          <label>Select Concert:</label>
-          <select onChange={(e) => setSelectedConcert(JSON.parse(e.target.value))}>
+        <div className="mb-3">
+          <label htmlFor="concertSelect" className="form-label">Select Concert:</label>
+          <select
+            id="concertSelect"
+            className="form-select"
+            onChange={(e) => setSelectedConcert(JSON.parse(e.target.value))}
+          >
             <option value="">-- Select a Concert --</option>
             {concerts.map((concert) => (
               <option key={concert.id} value={JSON.stringify(concert)}>
@@ -140,51 +158,58 @@ function BookingPage({ loginedUser, handleLogin }) {
         </div>
 
         {selectedConcert && (
-          <>
-            <h3>{selectedConcert.name} Details:</h3>
-            <p>Venue: {selectedConcert.venue}</p>
-            <p>Date: {new Date(selectedConcert.date).toLocaleDateString()}</p>
+          <div className="card mb-4">
+            <div className="card-body">
+              <h3 className="card-title">{selectedConcert.name} Details:</h3>
+              <p className="card-text">Venue: {selectedConcert.venue}</p>
+              <p className="card-text">Date: {new Date(selectedConcert.date).toLocaleDateString()}</p>
 
-            <div>
-              <label>Select Ticket Type:</label>
-              <select onChange={(e) => setSelectedTicket(JSON.parse(e.target.value))}>
-                <option value="">-- Select a Ticket Type --</option>
-                {tickets.map((ticket) => (
-                  <option key={ticket.id} value={JSON.stringify(ticket)}>
-                    {ticket.type} - ${ticket.price} (Available: {ticket.available_tickets})
-                  </option>
-                ))}
-              </select>
+              <div className="mb-3">
+                <label htmlFor="ticketSelect" className="form-label">Select Ticket Type:</label>
+                <select
+                  id="ticketSelect"
+                  className="form-select"
+                  onChange={(e) => setSelectedTicket(JSON.parse(e.target.value))}
+                >
+                  <option value="">-- Select a Ticket Type --</option>
+                  {tickets.map((ticket) => (
+                    <option key={ticket.id} value={JSON.stringify(ticket)}>
+                      {ticket.type} - ${ticket.price} (Available: {ticket.available_tickets})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {selectedTicket && (
+                <>
+                  <p className="card-text">Price: ${selectedTicket.price}</p>
+                  <p className="card-text">Available Tickets: {selectedTicket.available_tickets}</p>
+                  <div className="mb-3">
+                    <label htmlFor="quantityInput" className="form-label">Quantity:</label>
+                    <input
+                      type="number"
+                      id="quantityInput"
+                      className="form-control"
+                      min="1"
+                      max={selectedTicket.available_tickets}
+                      value={quantity}
+                      onChange={(e) => setQuantity(parseInt(e.target.value))}
+                    />
+                  </div>
+                </>
+              )}
+              <button type="submit" className="btn btn-primary">Confirm Booking</button>
             </div>
-
-            {selectedTicket && (
-              <>
-                <p>Price: ${selectedTicket.price}</p>
-                <p>Available Tickets: {selectedTicket.available_tickets}</p>
-                <div>
-                  <label>Quantity:</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max={selectedTicket.available_tickets}
-                    value={quantity}
-                    onChange={(e) => setQuantity(parseInt(e.target.value))}
-                  />
-                </div>
-              </>
-            )}
-            <button type="submit">Confirm Booking</button>
-          </>
+          </div>
         )}
       </form>
 
-      {/* ✅ User Bookings Section */}
-      <div style={{ marginTop: '40px' }}>
+      <div className="mt-5">
         <h2>Your Bookings</h2>
         {userBookings.length > 0 ? (
-          <ul>
+          <ul className="list-group">
             {userBookings.map((booking) => (
-              <li key={booking.id}>
+              <li key={booking.id} className="list-group-item">
                 Booking ID: {booking.id} - Concert: {booking.concert_name} - Ticket: {booking.ticket_type} - Quantity: {booking.quantity} - Total: ${booking.total_price}
               </li>
             ))}

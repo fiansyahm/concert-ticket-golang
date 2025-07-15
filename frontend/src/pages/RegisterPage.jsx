@@ -46,48 +46,66 @@ function RegisterPage({ isLoggedIn }) {
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Register</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Username:</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
+    <div className="container mt-5">
+      <div className="row justify-content-center">
+        <div className="col-md-6">
+          <div className="card">
+            <div className="card-body">
+              <h2 className="card-title text-center mb-4">Register</h2>
+              <form onSubmit={handleSubmit}>
+                <div className="mb-3">
+                  <label htmlFor="usernameInput" className="form-label">Username:</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="usernameInput"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="emailInput" className="form-label">Email:</label>
+                  <input
+                    type="email"
+                    className="form-control"
+                    id="emailInput"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="passwordInput" className="form-label">Password:</label>
+                  <input
+                    type="password"
+                    className="form-control"
+                    id="passwordInput"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="confirmPasswordInput" className="form-label">Confirm Password:</label>
+                  <input
+                    type="password"
+                    className="form-control"
+                    id="confirmPasswordInput"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="d-grid gap-2">
+                  <button type="submit" className="btn btn-primary">Register</button>
+                  <button type="button" className="btn btn-secondary" onClick={() => navigate('/login')}>Back to Login</button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
-        <div>
-          <label>Email:</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Confirm Password:</label>
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit">Register</button>
-        <button type="button" onClick={() => navigate('/login')} style={{ marginLeft: '10px' }}>Back to Login</button>
-      </form>
+      </div>
     </div>
   );
 }
