@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './theme.css';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
@@ -42,7 +43,7 @@ function App() {
 
   return (
     <Router>
-      <nav className="navbar navbar-expand-lg navbar-light bg-light">
+      <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
         <div className="container-fluid">
           <Link className="navbar-brand" to="/">Concert Tickets</Link>
           <div className="collapse navbar-collapse" id="navbarNav">

@@ -250,7 +250,7 @@ function BookingPage() {
                   <option value="">-- Select a Ticket Type --</option>
                   {tickets.map((ticket) => (
                     <option key={ticket.id} value={JSON.stringify(ticket)}>
-                      {ticket.type} - ${ticket.price} (Available: {ticket.available_tickets})
+                      {ticket.type} - Rp.{ticket.price}
                     </option>
                   ))}
                 </select>
@@ -258,7 +258,7 @@ function BookingPage() {
 
               {selectedTicket && (
                 <>
-                  <p className="card-text">Price: ${selectedTicket.price}</p>
+                  <p className="card-text">Price: Rp.{selectedTicket.price}</p>
                   <p className="card-text">Available Tickets: {selectedTicket.available_tickets}</p>
                   <div className="mb-3">
                     <label htmlFor="quantityInput" className="form-label">Quantity:</label>

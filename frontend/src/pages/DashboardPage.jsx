@@ -54,21 +54,9 @@ function DashboardPage({ handleLogout }) {
   return (
     <div className="container mt-5">
       <h2 className="mb-4">Dashboard</h2>
-      <p className="lead">Welcome to the Concert Ticket Booking System!</p>
+      <p className="lead">Selamat datang di Concert Ticket Booking System!</p>
 
-      <div className="card mb-4">
-        <div className="card-header">
-          Navigation
-        </div>
-        <div className="card-body">
-          <ul className="list-group list-group-flush">
-            <li className="list-group-item"><Link to="/booking" className="btn btn-primary">Book Tickets</Link></li>
-            {/* Add more navigation links as needed */}
-          </ul>
-        </div>
-      </div>
-
-      <h3>Available Concerts</h3>
+      <h3>Concerts Yang Tersedia</h3>
       {loading && <p>Loading concerts...</p>}
       {error && <p className="text-danger">Error loading concerts: {error.message}</p>}
       {!loading && concerts.length === 0 && <p>No concerts available.</p>}
@@ -78,7 +66,7 @@ function DashboardPage({ handleLogout }) {
             <div key={concert.id} className="col-md-4 mb-4">
               <div className="card h-100">
                 <div className="card-body">
-                  <h5 className="card-title">{concert.name}</h5>
+                  <h5 className="card-title text-primary">{concert.name}</h5>
                   <h6 className="card-subtitle mb-2 text-muted">{concert.venue}</h6>
                   <p className="card-text">Date: {new Date(concert.date).toLocaleDateString()}</p>
                   <p className="card-text">Total Tickets: {concert.total_tickets}</p>
