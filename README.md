@@ -96,5 +96,6 @@ Ini akan memulai server pengembangan React, biasanya di `http://localhost:5173` 
 ## File Basis Data
 
 Setiap layanan menggunakan file basis data MySql (misalnya, `booking.db`, `payment.db`, `user.db`). File-file ini akan dibuat di direktori layanan masing-masing (atau direktori root jika dikonfigurasi demikian) saat layanan berjalan untuk pertama kalinya. dapat memeriksa file-file ini menggunakan peramban MySql jika diperlukan.
+Saya menyediakan database secara online menggunakan remote MySql yang akan saya hapus setelah proses rekrutmen
 
 ---
