@@ -354,7 +354,7 @@ r.GET("/user/:id", func(c *gin.Context) {
 Deliverables
 - Link repository GitHub (frontend & backend) v
 - README penggunaan dan cara menjalankan (dev & optional: Docker) v
-- (Optional) Postman collection atau Swagger documentation
+- (Optional) Postman collection atau Swagger documentation v
 
 
 
