@@ -22,8 +22,8 @@ POST http://localhost:8082/api/tickets
 Content-Type: application/json
 
 {
-  "concert_id": 2,
-  "type": "W PREMIUM",
+  "concert_id": 1,
+  "type": "PREMIUM",
   "price": 150.00,
   "quantity": 100
 }

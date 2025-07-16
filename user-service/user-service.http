@@ -3,9 +3,9 @@ POST http://localhost:8081/api/register
 Content-Type: application/json
 
 {
-  "username": "testuser1",
+  "username": "testuser",
   "password": "password1",
-  "email": "testuser1@example.com"
+  "email": "testuser@example.com"
 }
 
 ### Login as the new user
