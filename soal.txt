@@ -33,14 +33,277 @@ Frontend (React.js)
 Query SQL dan penjelasan optimasi index.
 -	Membuat struktur database relasional berdasarkan project Concert Ticket Booking System diatas.
 -	Menjelaskan strategi optimasi query dengan cara menambahkan index yang tepat untuk meningkatkan performa pada dataset yang sangat besar.
+
+Jawaban:
+
+Struktur Database Relasional (Contoh Sederhana):
+
+Tabel `users`:
+- `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
+- `username` (VARCHAR(50), UNIQUE, NOT NULL)
+- `email` (VARCHAR(100), UNIQUE, NOT NULL)
+- `password_hash` (VARCHAR(255), NOT NULL)
+- `created_at` (DATETIME)
+- `updated_at` (DATETIME)
+
+Tabel `concerts`:
+- `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
+- `name` (VARCHAR(255), NOT NULL)
+- `artist` (VARCHAR(255), NOT NULL)
+- `date` (DATETIME, NOT NULL)
+- `location` (VARCHAR(255), NOT NULL)
+- `total_tickets` (INT, NOT NULL)
+- `available_tickets` (INT, NOT NULL)
+- `price` (DECIMAL(10, 2), NOT NULL)
+- `created_at` (DATETIME)
+- `updated_at` (DATETIME)
+
+Tabel `tickets`:
+- `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
+- `concert_id` (INT, FOREIGN KEY REFERENCES `concerts`(id), NOT NULL)
+- `seat_number` (VARCHAR(20), NOT NULL)
+- `status` (ENUM('available', 'booked', 'sold'), NOT NULL)
+- `price` (DECIMAL(10, 2), NOT NULL)
+- `created_at` (DATETIME)
+- `updated_at` (DATETIME)
+- UNIQUE(`concert_id`, `seat_number`) -- Untuk memastikan nomor kursi unik per konser
+
+Tabel `bookings`:
+- `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
+- `user_id` (INT, FOREIGN KEY REFERENCES `users`(id), NOT NULL)
+- `concert_id` (INT, FOREIGN KEY REFERENCES `concerts`(id), NOT NULL)
+- `booking_date` (DATETIME, NOT NULL)
+- `total_amount` (DECIMAL(10, 2), NOT NULL)
+- `status` (ENUM('pending', 'confirmed', 'cancelled'), NOT NULL)
+- `created_at` (DATETIME)
+- `updated_at` (DATETIME)
+
+Tabel `booking_tickets`: (Tabel pivot untuk many-to-many antara bookings dan tickets)
+- `booking_id` (INT, FOREIGN KEY REFERENCES `bookings`(id), NOT NULL)
+- `ticket_id` (INT, FOREIGN KEY REFERENCES `tickets`(id), NOT NULL)
+- PRIMARY KEY (`booking_id`, `ticket_id`)
+
+Tabel `payments`:
+- `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
+- `booking_id` (INT, FOREIGN KEY REFERENCES `bookings`(id), UNIQUE, NOT NULL) -- Satu pembayaran per booking
+- `amount` (DECIMAL(10, 2), NOT NULL)
+- `payment_method` (VARCHAR(50))
+- `transaction_id` (VARCHAR(255), UNIQUE, NOT NULL)
+- `status` (ENUM('pending', 'completed', 'failed'), NOT NULL)
+- `payment_date` (DATETIME, NOT NULL)
+- `created_at` (DATETIME)
+- `updated_at` (DATETIME)
+
+Strategi Optimasi Query dengan Index:
+
+Index adalah struktur data yang meningkatkan kecepatan operasi pengambilan data pada tabel database. Tanpa index, database harus melakukan scan tabel penuh untuk setiap query, yang sangat lambat pada dataset besar.
+
+Prinsip Umum Penggunaan Index:
+- Gunakan index pada kolom yang sering digunakan dalam klausa `WHERE`, `JOIN`, `ORDER BY`, dan `GROUP BY`.
+- Hindari index pada kolom dengan banyak nilai duplikat (low cardinality) atau kolom yang sering diupdate.
+- Index memiliki overhead: membutuhkan ruang penyimpanan dan memperlambat operasi `INSERT`, `UPDATE`, `DELETE`.
+
+Contoh Index yang Tepat:
+
+1.  **`users`**:
+    - `CREATE INDEX idx_users_email ON users (email);` (Untuk login/pencarian user berdasarkan email)
+    - `CREATE INDEX idx_users_username ON users (username);` (Jika username juga digunakan untuk login/pencarian)
+
+2.  **`concerts`**:
+    - `CREATE INDEX idx_concerts_date ON concerts (date);` (Untuk mencari konser berdasarkan tanggal)
+    - `CREATE INDEX idx_concerts_location ON concerts (location);` (Untuk mencari konser berdasarkan lokasi)
+    - `CREATE INDEX idx_concerts_artist ON concerts (artist);` (Untuk mencari konser berdasarkan artis)
+
+3.  **`tickets`**:
+    - `CREATE INDEX idx_tickets_concert_id ON tickets (concert_id);` (Sangat penting untuk JOIN dengan `concerts` dan mencari tiket per konser)
+    - `CREATE INDEX idx_tickets_status ON tickets (status);` (Untuk mencari tiket yang tersedia/terjual)
+    - `CREATE INDEX idx_tickets_concert_id_status ON tickets (concert_id, status);` (Compound index untuk query seperti "cari tiket tersedia untuk konser X")
+
+4.  **`bookings`**:
+    - `CREATE INDEX idx_bookings_user_id ON bookings (user_id);` (Untuk mencari booking berdasarkan user)
+    - `CREATE INDEX idx_bookings_concert_id ON bookings (concert_id);` (Untuk mencari booking berdasarkan konser)
+    - `CREATE INDEX idx_bookings_booking_date ON bookings (booking_date);` (Untuk laporan/analisis berdasarkan tanggal booking)
+    - `CREATE INDEX idx_bookings_status ON bookings (status);` (Untuk mencari booking dengan status tertentu)
+
+5.  **`booking_tickets`**:
+    - `CREATE INDEX idx_booking_tickets_booking_id ON booking_tickets (booking_id);`
+    - `CREATE INDEX idx_booking_tickets_ticket_id ON booking_tickets (ticket_id);`
+
+6.  **`payments`**:
+    - `CREATE INDEX idx_payments_booking_id ON payments (booking_id);` (Untuk mencari pembayaran berdasarkan booking)
+    - `CREATE INDEX idx_payments_transaction_id ON payments (transaction_id);` (Untuk mencari pembayaran berdasarkan ID transaksi)
+    - `CREATE INDEX idx_payments_status ON payments (status);` (Untuk mencari pembayaran dengan status tertentu)
+
+Optimasi Query Contoh:
+Misal query untuk mendapatkan semua tiket yang tersedia untuk konser tertentu:
+`SELECT * FROM tickets WHERE concert_id = X AND status = 'available';`
+Dengan `idx_tickets_concert_id_status`, database dapat langsung menggunakan index ini untuk menemukan baris yang relevan tanpa memindai seluruh tabel `tickets`.
+
 2. High-Load Optimization
 Cara mengurangi beban ke DB saat endpoint menerima 100.000 hit/detik.
+
+Jawaban:
+
+Mengurangi beban ke database pada 100.000 hit/detik memerlukan kombinasi strategi:
+
+1.  **Caching (Redis/Memcached)**:
+    -   **Read-Through/Write-Through Cache:** Cache data yang sering diakses (misalnya, detail konser, ketersediaan tiket yang tidak berubah terlalu cepat) di Redis. Sebelum ke DB, cek cache. Jika ada, kembalikan dari cache. Jika tidak, ambil dari DB, simpan ke cache, lalu kembalikan.
+    -   **Cache Invalidation:** Pastikan cache di-invalidate atau di-refresh saat data di DB berubah.
+    -   **Time-to-Live (TTL):** Set TTL yang sesuai untuk data di cache.
+    -   **Contoh:** Ketersediaan tiket untuk konser yang belum dimulai bisa di-cache.
+
+2.  **Connection Pooling**:
+    -   Gunakan connection pool di aplikasi backend Anda. Ini mengurangi overhead pembuatan dan penutupan koneksi database untuk setiap request.
+
+3.  **Optimasi Query dan Indexing**:
+    -   Pastikan semua query dioptimalkan dan index yang relevan sudah diterapkan (seperti jawaban soal 1). Hindari `SELECT *` dan gunakan kolom spesifik.
+    -   Gunakan `EXPLAIN` untuk menganalisis performa query.
+
+4.  **Load Balancing dan Horizontal Scaling**:
+    -   **Aplikasi Backend:** Sebarkan traffic ke beberapa instance aplikasi backend (microservices) di belakang load balancer.
+    -   **Database:**
+        -   **Read Replicas:** Gunakan read replicas (replika baca) untuk mendistribusikan beban query baca. Aplikasi dapat diarahkan untuk membaca dari replika dan menulis ke master.
+        -   **Sharding/Partitioning:** Pisahkan data ke beberapa database atau server (sharding) berdasarkan kriteria tertentu (misalnya, berdasarkan ID konser, tanggal). Ini mendistribusikan beban I/O dan komputasi.
+
+5.  **Asynchronous Processing / Message Queues (Kafka/RabbitMQ)**:
+    -   Untuk operasi yang tidak memerlukan respons instan (misalnya, pemrosesan pembayaran, pengiriman email konfirmasi), gunakan message queue.
+    -   Endpoint hanya menerima request, memvalidasi, dan mengirim pesan ke queue. Worker terpisah akan memproses pesan dari queue dan berinteraksi dengan DB. Ini mengurangi waktu respons endpoint dan memisahkan beban.
+    -   **Contoh:** Saat user memesan tiket, booking dibuat dengan status 'pending', lalu pesan dikirim ke queue untuk memproses pembayaran.
+
+6.  **Rate Limiting**:
+    -   Batasi jumlah request yang dapat dibuat oleh satu user atau IP dalam periode waktu tertentu untuk mencegah abuse dan melindungi server dari lonjakan traffic yang tidak terkontrol.
+
+7.  **Database Tuning**:
+    -   Konfigurasi parameter database (buffer pool size, max connections, dll.) sesuai dengan beban kerja.
+    -   Hardware yang memadai (SSD cepat, RAM cukup).
+
+8.  **Denormalisasi (Selektif)**:
+    -   Untuk query yang sangat sering dan kompleks, pertimbangkan denormalisasi sebagian data untuk mengurangi JOIN yang mahal. Namun, ini meningkatkan kompleksitas konsistensi data.
+
+9.  **Content Delivery Network (CDN)**:
+    -   Untuk aset statis frontend (gambar, CSS, JS), gunakan CDN untuk mengurangi beban pada server aplikasi.
 
 3. API Security
 Sebutkan minimal 5 langkah mengamankan endpoint POST /api/users.
 
+Jawaban:
+
+Mengamankan endpoint `POST /api/users` (biasanya untuk registrasi user baru) sangat krusial. Minimal 5 langkah:
+
+1.  **Validasi Input yang Ketat (Server-Side Validation)**:
+    -   **Tujuan:** Mencegah injeksi (SQL Injection, XSS), buffer overflow, dan data yang tidak valid.
+    -   **Implementasi:** Validasi semua input (username, email, password) di sisi server.
+        -   **Panjang:** Batasi panjang string.
+        -   **Format:** Pastikan email berformat email, username sesuai pola (misal: alphanumeric, tanpa spasi).
+        -   **Karakter Khusus:** Sanitasi atau escape karakter khusus untuk mencegah injeksi.
+        -   **Kekuatan Password:** Terapkan kebijakan kekuatan password (panjang minimum, kombinasi huruf besar/kecil, angka, simbol).
+
+2.  **Hashing Password yang Aman**:
+    -   **Tujuan:** Melindungi password user dari kebocoran data. Jangan pernah menyimpan password dalam bentuk plaintext.
+    -   **Implementasi:** Gunakan algoritma hashing yang kuat dan lambat seperti `bcrypt`, `scrypt`, atau `Argon2`.
+        -   Sertakan `salt` yang unik dan acak untuk setiap password untuk mencegah serangan rainbow table.
+        -   Lakukan hashing di sisi server sebelum menyimpan ke database.
+
+3.  **Rate Limiting**:
+    -   **Tujuan:** Mencegah serangan brute-force, denial-of-service (DoS), dan spamming pendaftaran.
+    -   **Implementasi:** Batasi jumlah request `POST /api/users` dari IP address atau user tertentu dalam periode waktu tertentu (misal: 5 request per menit per IP).
+        -   Gunakan header `X-RateLimit-Remaining`, `X-RateLimit-Limit`, `X-RateLimit-Reset` dalam respons.
+
+4.  **HTTPS/SSL/TLS Wajib**:
+    -   **Tujuan:** Mengenkripsi komunikasi antara klien dan server untuk mencegah eavesdropping (menguping) dan man-in-the-middle attack.
+    -   **Implementasi:** Pastikan semua komunikasi ke endpoint ini (dan semua endpoint lainnya) menggunakan HTTPS.
+        -   Gunakan sertifikat SSL/TLS yang valid.
+        -   Redirect semua traffic HTTP ke HTTPS.
+        -   Gunakan HSTS (HTTP Strict Transport Security) header.
+
+5.  **CAPTCHA/reCAPTCHA**:
+    -   **Tujuan:** Membedakan antara user manusia dan bot otomatis untuk mencegah pendaftaran massal oleh bot.
+    -   **Implementasi:** Integrasikan CAPTCHA (misalnya Google reCAPTCHA) pada form pendaftaran. Verifikasi token CAPTCHA di sisi server sebelum memproses pendaftaran.
+
+6.  **Logging dan Monitoring**:
+    -   **Tujuan:** Mendeteksi dan merespons aktivitas mencurigakan atau serangan.
+    -   **Implementasi:** Catat (log) semua upaya pendaftaran, termasuk IP address, timestamp, dan status (berhasil/gagal).
+        -   Pantau log untuk pola serangan (misalnya, banyak upaya pendaftaran gagal dari satu IP).
+        -   Integrasikan dengan sistem peringatan (alerting system).
+
+7.  **CORS (Cross-Origin Resource Sharing) yang Tepat**:
+    -   **Tujuan:** Mengontrol domain mana yang diizinkan untuk membuat request ke API Anda.
+    -   **Implementasi:** Konfigurasi CORS di server Anda untuk hanya mengizinkan domain frontend yang sah. Hindari `Access-Control-Allow-Origin: *` di lingkungan produksi.
+
 4. CI/CD Workflow
 Jelaskan secara lengkap dan terstruktur alur Continuous Integration dan Continuous Deployment (CI/CD) yang terjadi mulai dari developer melakukan Git commit hingga aplikasi ter-deploy ke lingkungan production.
+
+Jawaban:
+
+Alur Continuous Integration (CI) dan Continuous Deployment (CD) adalah praktik DevOps yang mengotomatisasi proses pengembangan, pengujian, dan deployment aplikasi.
+
+**Fase 1: Continuous Integration (CI)**
+
+Tujuan: Mengintegrasikan perubahan kode dari berbagai developer secara sering dan otomatis, serta memverifikasi bahwa perubahan tersebut tidak merusak fungsionalitas yang ada.
+
+1.  **Developer Commits Code**:
+    -   Developer menulis kode baru atau memodifikasi kode yang sudah ada di branch lokal mereka.
+    -   Setelah selesai dengan fitur/bugfix kecil, developer melakukan `git commit` dan `git push` ke repository Git (misalnya GitHub, GitLab, Bitbucket). Biasanya ke branch fitur atau development.
+
+2.  **Trigger CI Pipeline**:
+    -   Sistem CI/CD (misalnya Jenkins, GitLab CI/CD, GitHub Actions, CircleCI) mendeteksi adanya push baru ke repository.
+    -   Ini secara otomatis memicu eksekusi pipeline CI yang telah dikonfigurasi.
+
+3.  **Build Application**:
+    -   Pipeline CI pertama-tama akan mengambil (clone) kode terbaru dari repository.
+    -   Kemudian, ia akan membangun aplikasi (misalnya, `go build` untuk backend Go, `npm install && npm run build` untuk frontend React).
+    -   Jika ada dependensi eksternal, ini adalah tahap di mana mereka diunduh dan diinstal.
+
+4.  **Run Automated Tests**:
+    -   Setelah build berhasil, pipeline menjalankan serangkaian tes otomatis:
+        -   **Unit Tests:** Menguji unit kode terkecil (fungsi, metode) secara terisolasi.
+        -   **Integration Tests:** Menguji interaksi antara berbagai komponen atau layanan.
+        -   **Linting/Static Analysis:** Memeriksa kualitas kode, gaya, dan potensi bug tanpa menjalankan kode.
+        -   **Security Scans (SAST):** Memindai kode sumber untuk kerentanan keamanan yang diketahui.
+    -   Jika ada tes yang gagal, pipeline akan berhenti, dan developer akan diberitahu. Ini mencegah kode yang rusak masuk ke tahap selanjutnya.
+
+5.  **Create Artifacts**:
+    -   Jika semua tes CI berhasil, pipeline akan membuat "artifact" yang siap untuk deployment.
+    -   Untuk backend Go, ini bisa berupa binary executable atau image Docker.
+    -   Untuk frontend React, ini bisa berupa file statis yang sudah di-build (HTML, CSS, JS) atau image Docker.
+    -   Artifact ini kemudian disimpan di registry artifact (misalnya Docker Registry, Nexus, Artifactory).
+
+**Fase 2: Continuous Delivery (CD) / Continuous Deployment (CD)**
+
+Tujuan: Mengotomatisasi proses pengiriman (delivery) atau deployment aplikasi ke berbagai lingkungan (staging, production).
+
+**Continuous Delivery (CD):** Aplikasi siap untuk dirilis kapan saja, tetapi deployment ke produksi mungkin memerlukan persetujuan manual.
+**Continuous Deployment (CD):** Setiap perubahan yang melewati pipeline CI secara otomatis di-deploy ke produksi tanpa intervensi manual.
+
+6.  **Deploy to Staging/Testing Environment (CD - Delivery)**:
+    -   Setelah artifact dibuat, pipeline dapat secara otomatis mendeploy artifact tersebut ke lingkungan staging atau testing.
+    -   Lingkungan ini harus semirip mungkin dengan lingkungan produksi.
+    -   Di sini, pengujian lebih lanjut dapat dilakukan:
+        -   **End-to-End Tests:** Menguji alur pengguna secara keseluruhan.
+        -   **Performance Tests:** Menguji kinerja aplikasi di bawah beban.
+        -   **User Acceptance Testing (UAT):** Pengujian manual oleh tim QA atau stakeholder.
+
+7.  **Manual Approval (Opsional, untuk Continuous Delivery)**:
+    -   Jika menggunakan Continuous Delivery, setelah pengujian di staging berhasil, mungkin ada langkah persetujuan manual.
+    -   Manajer rilis atau tim QA akan meninjau hasil pengujian dan memberikan persetujuan untuk deployment ke produksi.
+
+8.  **Deploy to Production Environment (CD - Deployment)**:
+    -   Setelah persetujuan (atau secara otomatis dalam Continuous Deployment penuh), pipeline akan mendeploy artifact ke lingkungan produksi.
+    -   Strategi deployment bisa bervariasi:
+        -   **Rolling Updates:** Mengganti instance lama dengan yang baru secara bertahap.
+        -   **Blue/Green Deployment:** Menjalankan versi baru (green) di samping versi lama (blue), lalu mengalihkan traffic.
+        -   **Canary Deployment:** Merilis versi baru ke sebagian kecil user, memantau, lalu merilis ke semua user.
+    -   Ini sering melibatkan orkestrator kontainer seperti Kubernetes atau layanan PaaS.
+
+9.  **Post-Deployment Monitoring & Rollback**:
+    -   Setelah deployment, sistem monitoring (misalnya Prometheus, Grafana, ELK Stack) akan memantau kesehatan aplikasi, performa, dan log error di produksi.
+    -   Jika ada masalah kritis terdeteksi, pipeline harus memiliki kemampuan untuk melakukan rollback cepat ke versi sebelumnya yang stabil.
+
+**Ringkasan Alur:**
+
+`Developer Commit & Push` -> `CI Trigger` -> `Build` -> `Unit/Integration/Lint/Security Tests` -> `Create Artifact` -> `Store Artifact` -> `Deploy to Staging` -> `E2E/Performance/UAT Tests` -> `[Manual Approval]` -> `Deploy to Production` -> `Monitor & Rollback`
+
+Alur CI/CD ini memastikan bahwa kode diintegrasikan, diuji, dan di-deploy secara efisien dan andal, mengurangi risiko dan mempercepat waktu rilis.
 
 5. Code Review & Debugging (Golang)
 Berikut potongan kode handler API menggunakan Gin:
@@ -63,9 +326,45 @@ Instruksi:
 - Identifikasi minimal 3 masalah/bug dari kode awal.
 - Jelaskan kesalahan dan perbaikannya.
 - Tunjukkan versi kode yang sudah diperbaiki.
+
+Jawaban:
+Kode tersebut bermasalah karena tidak memvalidasi ID dengan benar, membandingkan struct langsung dengan nil, dan tidak menangani error record not found secara spesifik—semua ini bisa diperbaiki dengan konversi ID ke int, pengecekan error yang tepat, dan memastikan fungsi FindUserByID mengembalikan pointer.
+
+Kode Perbaikan:
+import (
+    "net/http"
+    "strconv"
+    "github.com/gin-gonic/gin"
+    "gorm.io/gorm"
+)
+
+r.GET("/user/:id", func(c *gin.Context) {
+    idParam := c.Param("id")
+    id, err := strconv.Atoi(idParam)
+    if err != nil || id <= 0 {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+        return
+    }
+
+    user, err := db.FindUserByID(id) // diasumsikan mengembalikan *User dan error
+    if err != nil {
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+        } else {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+        }
+        return
+    }
+
+    c.JSON(http.StatusOK, user)
+})
+
+
+
+
 Deliverables
-- Link repository GitHub (frontend & backend)
-- README penggunaan dan cara menjalankan (dev & optional: Docker)
+- Link repository GitHub (frontend & backend) v
+- README penggunaan dan cara menjalankan (dev & optional: Docker) v
 - (Optional) Postman collection atau Swagger documentation
 
 
