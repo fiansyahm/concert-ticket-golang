@@ -100,33 +100,24 @@ Contoh Index yang Tepat:
 
 2.  **`concerts`**:
     - `CREATE INDEX idx_concerts_date ON concerts (date);` (Untuk mencari konser berdasarkan tanggal)
-    - `CREATE INDEX idx_concerts_location ON concerts (location);` (Untuk mencari konser berdasarkan lokasi)
-    - `CREATE INDEX idx_concerts_artist ON concerts (artist);` (Untuk mencari konser berdasarkan artis)
 
 3.  **`tickets`**:
     - `CREATE INDEX idx_tickets_concert_id ON tickets (concert_id);` (Sangat penting untuk JOIN dengan `concerts` dan mencari tiket per konser)
-    - `CREATE INDEX idx_tickets_status ON tickets (status);` (Untuk mencari tiket yang tersedia/terjual)
-    - `CREATE INDEX idx_tickets_concert_id_status ON tickets (concert_id, status);` (Compound index untuk query seperti "cari tiket tersedia untuk konser X")
+    - `CREATE INDEX idx_tickets_type ON tickets (type);` (Untuk mencari tiket yang tersedia/terjual dengan tingkatan tertentu)
 
 4.  **`bookings`**:
     - `CREATE INDEX idx_bookings_user_id ON bookings (user_id);` (Untuk mencari booking berdasarkan user)
-    - `CREATE INDEX idx_bookings_concert_id ON bookings (concert_id);` (Untuk mencari booking berdasarkan konser)
-    - `CREATE INDEX idx_bookings_booking_date ON bookings (booking_date);` (Untuk laporan/analisis berdasarkan tanggal booking)
-    - `CREATE INDEX idx_bookings_status ON bookings (status);` (Untuk mencari booking dengan status tertentu)
+    - `CREATE INDEX idx_bookings_ticket_id ON bookings (ticket_id);` (Untuk mencari booking berdasarkan ticket)
 
-5.  **`booking_tickets`**:
-    - `CREATE INDEX idx_booking_tickets_booking_id ON booking_tickets (booking_id);`
-    - `CREATE INDEX idx_booking_tickets_ticket_id ON booking_tickets (ticket_id);`
-
-6.  **`payments`**:
+5.  **`payments`**:
     - `CREATE INDEX idx_payments_booking_id ON payments (booking_id);` (Untuk mencari pembayaran berdasarkan booking)
     - `CREATE INDEX idx_payments_transaction_id ON payments (transaction_id);` (Untuk mencari pembayaran berdasarkan ID transaksi)
     - `CREATE INDEX idx_payments_status ON payments (status);` (Untuk mencari pembayaran dengan status tertentu)
 
 Optimasi Query Contoh:
 Misal query untuk mendapatkan semua tiket yang tersedia untuk konser tertentu:
-`SELECT * FROM tickets WHERE concert_id = X AND status = 'available';`
-Dengan `idx_tickets_concert_id_status`, database dapat langsung menggunakan index ini untuk menemukan baris yang relevan tanpa memindai seluruh tabel `tickets`.
+`SELECT * FROM tickets WHERE concert_id = X;`
+Dengan `idx_tickets_concert_id`, database dapat langsung menggunakan index ini untuk menemukan baris yang relevan tanpa memindai seluruh tabel `tickets`.
 
 2. High-Load Optimization
 Cara mengurangi beban ke DB saat endpoint menerima 100.000 hit/detik.
